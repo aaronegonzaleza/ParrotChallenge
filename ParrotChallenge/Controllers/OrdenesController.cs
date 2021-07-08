@@ -80,12 +80,32 @@ namespace API.Controllers
         [HttpPost]
         public async Task<ActionResult<Orden>> PostOrden(Orden orden)
         {
+            
+
+            if(orden.Detalles == null || orden.Detalles.Count == 0)
+            {
+                return BadRequest("Favor de proporcionar detalles de la orden")
+            }
+
+            foreach (var d in orden.Detalles)
+            {
+                if (d.Producto.NombreProducto == null || d.Producto.NombreProducto.Trim() == "")
+                {
+                    return BadRequest("Favor de proporcionar Nombre de Producto");
+                }
+                if(d.Producto.PrecioUnitario == 0)
+                {
+                    return BadRequest("Favor de proporcionar Precio Unitario");
+                }
+            }
             if (!_context.Usuarios.Any(a => a.Email == orden.Usuario.Email))
                 return Unauthorized("Usuario No Existe");
             else
             {
                 orden.Usuario = _context.Usuarios.Find(orden.Usuario.Email);
             }
+
+            
             
             orden.Detalles = orden.Detalles.GroupBy(gb => gb.Producto.NombreProducto).Select(s => new DetalleOrden() { Producto = new Producto() { NombreProducto = s.Key, PrecioUnitario = s.Average(a => a.Producto.PrecioUnitario) },Cantidad = s.Sum(s=> s.Cantidad) }).ToList();
            

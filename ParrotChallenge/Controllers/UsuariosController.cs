@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using API.Context;
 using API.Model;
+using System.Text.RegularExpressions;
 
 namespace API.Controllers
 {
@@ -49,6 +50,11 @@ namespace API.Controllers
         [HttpPost]
         public async Task<ActionResult<Usuario>> PostUsuario(Usuario usuario)
         {
+            if (usuario.Email == null || isMailValid(usuario.Email))
+                return BadRequest("Email Invalido");
+            if (usuario.Nombre == null || usuario.Nombre.Trim() == "")
+                return BadRequest("Debe proporcionar un nombre");
+
             _context.Usuarios.Add(usuario);
             try
             {
@@ -88,6 +94,15 @@ namespace API.Controllers
         private bool UsuarioExists(string id)
         {
             return _context.Usuarios.Any(e => e.Email == id);
+        }
+
+        private bool isMailValid(string email)
+        {
+            Regex regex = new Regex(@"^([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-
+         9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$",
+        RegexOptions.CultureInvariant | RegexOptions.Singleline);
+
+           return regex.IsMatch(email);
         }
     }
 }
